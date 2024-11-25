@@ -21,6 +21,7 @@ But there are rules:
 
 This step is not complete yet, but there are implementations for the following structures:
 - Stack
+- Queue
 
 # Main difficulties
 
@@ -30,3 +31,4 @@ In order to build the data structures, I needed to study:
 - How to use defer and errdefer
 - How to run all tests linked to main.zig (including of other files)
 - How to handle optional types
+- How to use "unreachable" in zig and some shortcuts

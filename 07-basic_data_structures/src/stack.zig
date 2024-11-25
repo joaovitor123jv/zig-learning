@@ -35,25 +35,22 @@ pub const Stack = struct {
         return switch (self.elements) {
             0 => null,
             1 => {
-                if (self.stackTop) |stackTop| {
-                    self.elements = 0;
-                    const value = stackTop.value;
-                    self.allocator.destroy(stackTop);
-                    return value;
-                }
-                unreachable;
+                const top = self.stackTop.?;
+                self.elements = 0;
+                const value = top.value;
+                self.allocator.destroy(top);
+                return value;
             },
             else => {
-                if (self.stackTop) |top| {
-                    if (top.next) |next| {
-                        self.elements -= 1;
-                        const value = top.value;
-                        self.stackTop = next;
-                        self.allocator.destroy(top);
-                        return value;
-                    }
-                }
-                unreachable;
+                // I am pretty sure these 2 branches (1 => and else =>) can be
+                // merged to avoid repetition. I will refactor this later
+                const top = self.stackTop.?;
+                const nextElement = top.next.?;
+                self.elements -= 1;
+                const value = top.value;
+                self.stackTop = nextElement;
+                self.allocator.destroy(top);
+                return value;
             },
         };
     }
@@ -70,9 +67,7 @@ pub const Stack = struct {
         }
 
         std.debug.print("Stack with {} elements:\n", .{self.elements});
-        if (self.stackTop) |top| {
-            self.printElements(top);
-        }
+        self.printElements(self.stackTop.?);
     }
 };
 
