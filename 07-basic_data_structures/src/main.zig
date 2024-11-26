@@ -1,6 +1,7 @@
 const std = @import("std");
 const Stack = @import("stack.zig").Stack;
 const Queue = @import("queue.zig").Queue;
+const List = @import("list.zig").List;
 
 const print = std.debug.print;
 
@@ -38,6 +39,19 @@ pub fn main() !void {
     print("Removed {} from queue\n", .{valueFromQueue});
 
     queue.print();
+
+    var list = List.init(allocator);
+    defer list.deinit();
+    try list.append(10);
+    try list.append(20);
+    try list.prepend(50);
+    try list.prepend(60);
+
+    list.print(); // Expected: {60,50,10,20}
+
+    const valueFromList = list.removeEnd().?;
+    print("Removed {} from list\n", .{valueFromList}); // Expected 20
+    list.print(); // Expected: {60,50,10}
 }
 
 test {

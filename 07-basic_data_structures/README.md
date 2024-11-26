@@ -22,6 +22,7 @@ But there are rules:
 This step is not complete yet, but there are implementations for the following structures:
 - Stack
 - Queue
+- List
 
 # Main difficulties
 
