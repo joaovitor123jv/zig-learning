@@ -23,6 +23,7 @@ This step is not complete yet, but there are implementations for the following s
 - Stack
 - Queue
 - List
+- Binary Tree (partially implemented)
 
 # Main difficulties
 
@@ -33,3 +34,4 @@ In order to build the data structures, I needed to study:
 - How to run all tests linked to main.zig (including of other files)
 - How to handle optional types
 - How to use "unreachable" in zig and some shortcuts
+- How to properly debug segfaults

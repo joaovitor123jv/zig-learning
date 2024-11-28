@@ -2,6 +2,7 @@ const std = @import("std");
 const Stack = @import("stack.zig").Stack;
 const Queue = @import("queue.zig").Queue;
 const List = @import("list.zig").List;
+const BinaryTree = @import("binary_tree.zig").BinaryTree;
 
 const print = std.debug.print;
 
@@ -52,6 +53,28 @@ pub fn main() !void {
     const valueFromList = list.removeEnd().?;
     print("Removed {} from list\n", .{valueFromList}); // Expected 20
     list.print(); // Expected: {60,50,10}
+
+    var binTree = BinaryTree.init(allocator);
+    defer binTree.deinit();
+
+    try binTree.insert(10);
+    try binTree.insert(5);
+    try binTree.insert(6);
+    try binTree.insert(4);
+    try binTree.insert(12);
+    try binTree.insert(11);
+    try binTree.insert(13);
+    try binTree.insert(14);
+    try binTree.insert(15);
+    try binTree.insert(3);
+    try binTree.insert(1);
+    try binTree.insert(0);
+    try binTree.insert(2);
+
+    binTree.print();
+    const smallestNumberBinTree = binTree.removeSmallest().?;
+    print("Smallest value on binTree was {}\n", .{smallestNumberBinTree});
+    binTree.print();
 }
 
 test {
