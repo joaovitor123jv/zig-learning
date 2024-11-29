@@ -39,10 +39,15 @@ const Node = struct {
 
     fn printTree(self: *Node, level: u32) void {
         if (self.parent) |parent| {
-            std.debug.print("\tel{} -> el{};\n", .{ parent.value, self.value });
+            std.debug.print("\tel_{} -> el_{};\n", .{ parent.value, self.value });
         }
-        if (self.left) |left| left.printTree(level + 1);
-        if (self.right) |right| right.printTree(level + 1);
+        if (self.left) |left| {
+            left.printTree(level + 1);
+        } else std.debug.print("\tel_{} -> null_l_{}\n", .{ self.value, self.value });
+
+        if (self.right) |right| {
+            right.printTree(level + 1);
+        } else std.debug.print("\tel_{} -> null_r_{}\n", .{ self.value, self.value });
     }
 };
 
@@ -140,13 +145,16 @@ pub const BinaryTree = struct {
         const smallestNode = self.root.?.getSmallestNode();
         const smallestValue = smallestNode.value;
 
-        if (smallestNode.parent) |parent| {
-            // smallestNode is always the a leaf that is a left child, when is not the root
-            parent.left = null;
-        } else { // The root node
-            if (smallestNode.right) |right| { // it does not have left child (only left is smaller)
-                self.root = right;
-            }
+        if (smallestNode.parent) |parent| { // smallestNode is always the left child, when is not the root
+            if (smallestNode.right) |right| {
+                // In this case, shift this child as the parent's new left child
+                parent.left = right;
+                right.parent = parent;
+            } else parent.left = null;
+        } else if (smallestNode.right) |right| {
+            // If there is more nodes remaining on the right of the root node
+            self.root = right;
+            right.parent = null;
         }
 
         self.allocator.destroy(smallestNode);
