@@ -80,8 +80,7 @@ pub const Queue = struct {
 };
 
 test "can init and deinit a queue" {
-    var gpa = std.heap.GeneralPurposeAllocator(.{}){};
-    var queue = Queue.init(gpa.allocator());
+    var queue = Queue.init(std.testing.allocator);
     defer queue.deinit();
 
     try expectEqual(0, queue.elements);
@@ -90,8 +89,7 @@ test "can init and deinit a queue" {
 }
 
 test "can enqueue items" {
-    var gpa = std.heap.GeneralPurposeAllocator(.{}){};
-    var queue = Queue.init(gpa.allocator());
+    var queue = Queue.init(std.testing.allocator);
     defer queue.deinit();
 
     try queue.enqueue(10);
@@ -112,8 +110,7 @@ test "can enqueue items" {
 }
 
 test "can dequeue items" {
-    var gpa = std.heap.GeneralPurposeAllocator(.{}){};
-    var queue = Queue.init(gpa.allocator());
+    var queue = Queue.init(std.testing.allocator);
     defer queue.deinit();
 
     try queue.enqueue(10);

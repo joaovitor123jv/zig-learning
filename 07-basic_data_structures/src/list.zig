@@ -151,8 +151,7 @@ pub const List = struct {
 };
 
 test "can init and deinit list" {
-    var gpa = std.heap.GeneralPurposeAllocator(.{}){};
-    var list = List.init(gpa.allocator());
+    var list = List.init(std.testing.allocator);
     defer list.deinit();
 
     try expectEqual(0, list.elements);
@@ -161,8 +160,7 @@ test "can init and deinit list" {
 }
 
 test "can add on the list end" {
-    var gpa = std.heap.GeneralPurposeAllocator(.{}){};
-    var list = List.init(gpa.allocator());
+    var list = List.init(std.testing.allocator);
     defer list.deinit();
 
     try list.append(10);
@@ -182,8 +180,7 @@ test "can add on the list end" {
 }
 
 test "can add on the list start" {
-    var gpa = std.heap.GeneralPurposeAllocator(.{}){};
-    var list = List.init(gpa.allocator());
+    var list = List.init(std.testing.allocator);
     defer list.deinit();
 
     try list.prepend(10);

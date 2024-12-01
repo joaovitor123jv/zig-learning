@@ -107,8 +107,7 @@ const Node = struct {
 };
 
 test "can init and deinit node" {
-    var gpa = std.heap.GeneralPurposeAllocator(.{}){};
-    const allocator = gpa.allocator();
+    const allocator = std.testing.allocator;
 
     const node = try Node.init(10, allocator);
     defer node.deinit(allocator);
@@ -120,8 +119,7 @@ test "can init and deinit node" {
 }
 
 test "can insert node on node" {
-    var gpa = std.heap.GeneralPurposeAllocator(.{}){};
-    const allocator = gpa.allocator();
+    const allocator = std.testing.allocator;
 
     var parentNode: *Node = try Node.init(10, allocator);
     defer parentNode.deinit(allocator); // Frees memory of all children
@@ -143,8 +141,7 @@ test "can insert node on node" {
 }
 
 test "can search node by value" {
-    var gpa = std.heap.GeneralPurposeAllocator(.{}){};
-    const allocator = gpa.allocator();
+    const allocator = std.testing.allocator;
 
     var node: *Node = try Node.init(10, allocator);
     defer node.deinit(allocator); // Frees memory of all children
@@ -166,8 +163,7 @@ test "can search node by value" {
 }
 
 test "get smallest node of empty node returns self" {
-    var gpa = std.heap.GeneralPurposeAllocator(.{}){};
-    const allocator = gpa.allocator();
+    const allocator = std.testing.allocator;
 
     var node: *Node = try Node.init(10, allocator);
     defer node.deinit(allocator);
@@ -176,8 +172,7 @@ test "get smallest node of empty node returns self" {
 }
 
 test "can get smallest node of node with children" {
-    var gpa = std.heap.GeneralPurposeAllocator(.{}){};
-    const allocator = gpa.allocator();
+    const allocator = std.testing.allocator;
 
     var parentNode: *Node = try Node.init(10, allocator);
     defer parentNode.deinit(allocator); // Frees memory of all children
@@ -198,8 +193,7 @@ test "can get smallest node of node with children" {
 }
 
 test "get biggest node of empty node returns self" {
-    var gpa = std.heap.GeneralPurposeAllocator(.{}){};
-    const allocator = gpa.allocator();
+    const allocator = std.testing.allocator;
 
     var node: *Node = try Node.init(10, allocator);
     defer node.deinit(allocator);
@@ -208,8 +202,7 @@ test "get biggest node of empty node returns self" {
 }
 
 test "can get biggest node of node with children" {
-    var gpa = std.heap.GeneralPurposeAllocator(.{}){};
-    const allocator = gpa.allocator();
+    const allocator = std.testing.allocator;
 
     var parentNode: *Node = try Node.init(10, allocator);
     defer parentNode.deinit(allocator);
@@ -325,9 +318,7 @@ pub const BinaryTree = struct {
 };
 
 test "can init and deinit BinaryTree" {
-    var gpa = std.heap.GeneralPurposeAllocator(.{}){};
-
-    var binaryTree = BinaryTree.init(gpa.allocator());
+    var binaryTree = BinaryTree.init(std.testing.allocator);
     defer binaryTree.deinit();
 
     try expectEqual(0, binaryTree.elements);
@@ -335,9 +326,7 @@ test "can init and deinit BinaryTree" {
 }
 
 test "can insert values in binary tree" {
-    var gpa = std.heap.GeneralPurposeAllocator(.{}){};
-
-    var binaryTree = BinaryTree.init(gpa.allocator());
+    var binaryTree = BinaryTree.init(std.testing.allocator);
     defer binaryTree.deinit();
 
     try binaryTree.insert(10);
@@ -360,9 +349,7 @@ test "can insert values in binary tree" {
 }
 
 test "can get biggest number in a binary tree" {
-    var gpa = std.heap.GeneralPurposeAllocator(.{}){};
-
-    var binaryTree = BinaryTree.init(gpa.allocator());
+    var binaryTree = BinaryTree.init(std.testing.allocator);
     defer binaryTree.deinit();
 
     try binaryTree.insert(10);
@@ -373,16 +360,13 @@ test "can get biggest number in a binary tree" {
 }
 
 test "smallest number in empty binary tree is null" {
-    var gpa = std.heap.GeneralPurposeAllocator(.{}){};
-    var binaryTree = BinaryTree.init(gpa.allocator());
+    var binaryTree = BinaryTree.init(std.testing.allocator);
     defer binaryTree.deinit();
     try expectEqual(null, binaryTree.getSmallest());
 }
 
 test "can get smallest number in a binary tree" {
-    var gpa = std.heap.GeneralPurposeAllocator(.{}){};
-
-    var binaryTree = BinaryTree.init(gpa.allocator());
+    var binaryTree = BinaryTree.init(std.testing.allocator);
     defer binaryTree.deinit();
 
     try binaryTree.insert(10);
@@ -393,16 +377,13 @@ test "can get smallest number in a binary tree" {
 }
 
 test "biggest number in empty binary tree is null" {
-    var gpa = std.heap.GeneralPurposeAllocator(.{}){};
-    var binaryTree = BinaryTree.init(gpa.allocator());
+    var binaryTree = BinaryTree.init(std.testing.allocator);
     defer binaryTree.deinit();
     try expectEqual(null, binaryTree.getBiggest());
 }
 
 test "can check if tree contains value" {
-    var gpa = std.heap.GeneralPurposeAllocator(.{}){};
-
-    var binaryTree = BinaryTree.init(gpa.allocator());
+    var binaryTree = BinaryTree.init(std.testing.allocator);
     defer binaryTree.deinit();
 
     try expectEqual(false, binaryTree.contains(10));
@@ -416,9 +397,7 @@ test "can check if tree contains value" {
 }
 
 test "can search for node in BinaryTree" {
-    var gpa = std.heap.GeneralPurposeAllocator(.{}){};
-
-    var binaryTree = BinaryTree.init(gpa.allocator());
+    var binaryTree = BinaryTree.init(std.testing.allocator);
     defer binaryTree.deinit();
 
     try expectEqual(null, binaryTree.searchNode(10));

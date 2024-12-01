@@ -72,9 +72,7 @@ pub const Stack = struct {
 };
 
 test "can init stack" {
-    var gpa = std.heap.GeneralPurposeAllocator(.{}){};
-    const allocator = gpa.allocator();
-    var stack = Stack.init(allocator);
+    var stack = Stack.init(std.testing.allocator);
     defer stack.deinit();
 
     try expectEqual(stack.elements, @as(u32, 0));
@@ -82,9 +80,7 @@ test "can init stack" {
 }
 
 test "push to stack" {
-    var gpa = std.heap.GeneralPurposeAllocator(.{}){};
-    const allocator = gpa.allocator();
-    var stack = Stack.init(allocator);
+    var stack = Stack.init(std.testing.allocator);
     defer stack.deinit();
 
     try stack.push(10);
@@ -103,9 +99,7 @@ test "push to stack" {
 }
 
 test "pop from stack" {
-    var gpa = std.heap.GeneralPurposeAllocator(.{}){};
-    const allocator = gpa.allocator();
-    var stack = Stack.init(allocator);
+    var stack = Stack.init(std.testing.allocator);
     defer stack.deinit();
 
     try stack.push(10);
