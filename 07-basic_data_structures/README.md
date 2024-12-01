@@ -12,7 +12,7 @@ default data sctructures. They are:
 - Stack (First-In Last-Out)
 - Queue (First-In First-Out)
 - List (double-linked, adding and removing from start/end)
-- Binary tree (with binary search)
+- Binary tree (with binary search, not balanced)
 
 But there are rules:
 - I cannot use default-implemented data structures (like arrays/lists)
@@ -23,7 +23,7 @@ This step is not complete yet, but there are implementations for the following s
 - Stack
 - Queue
 - List
-- Binary Tree (partially implemented)
+- Binary Tree
 
 # Main difficulties
 
