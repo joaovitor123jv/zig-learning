@@ -1,13 +1,37 @@
 const std = @import("std");
+const os = @import("builtin").os;
+
+fn createFile(allocator: std.mem.Allocator, path: []const u8) !void {
+    const file = try std.fs.cwd().createFile(
+        path,
+        .{ .read = true, .truncate = false },
+    );
+    defer file.close();
+
+    const message = "Hello File!";
+
+    try file.writeAll(message);
+
+    try file.seekTo(0);
+    const bytes_read = try file.reader().readAllAlloc(allocator, message.len);
+
+    std.debug.print("Content written on file: {s}\n", .{bytes_read});
+}
 
 pub fn main() !void {
-    std.debug.print("All your {s} are belong to us.\n", .{"codebase"});
+    const max_file_size = 200;
+    const stdin = std.io.getStdIn();
+    const stdout = std.io.getStdOut();
+    var gpa = std.heap.GeneralPurposeAllocator(.{}){};
 
-    const stdout_file = std.io.getStdOut().writer();
-    var bw = std.io.bufferedWriter(stdout_file);
-    const stdout = bw.writer();
+    try stdout.writeAll("What file do you want to create? ");
 
-    try stdout.print("Run `zig build test` to run the tests.\n", .{});
+    var result = try stdin.reader().readUntilDelimiterAlloc(gpa.allocator(), '\n', max_file_size);
+    if (os.tag == .windows) {
+        result = std.mem.trimRight(u8, result, '\r'); // Removes \r if running on windows
+    }
 
-    try bw.flush(); // don't forget to flush!
+    try stdout.writer().print("You are creating a file named: {s}\n", .{result});
+
+    try createFile(gpa.allocator(), result);
 }
