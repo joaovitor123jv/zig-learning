@@ -26,4 +26,36 @@ The rules for this project are:
 
 # Main difficulties
 
-Here I will register the main difficulties I have found during implementation.
+I have found unexpected differences between Linux, macOS and Windows on the
+behaviour of some constants. For instance, this code works well on Unix
+systems, but not on Windows systems:
+
+```zig
+const std = @import("std");
+const stdout = std.io.getStdOut();
+
+fn main() !void {
+    try stdout.writer().print("Hello World!\n");
+    return;
+}
+```
+
+Accordingly to the sources I've read, the stdout file on Unix systems have a
+predefined, fixed value, known at compile time. While Windows systems have a
+value known only in runtime. This way, to make this code work in both systems,
+we need to adapt it to something like the code below:
+
+```zig
+const std = @import("std");
+
+fn main() !void {
+    const stdout = std.io.getStdOut();
+    try stdout.writer().print("Hello World!\n");
+    return;
+}
+```
+
+This is not exclusive for stdout and stdin, as this behaviour can happen in
+different, unknown situations.
+
+

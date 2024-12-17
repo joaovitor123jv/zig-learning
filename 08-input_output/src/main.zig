@@ -1,13 +1,27 @@
 const std = @import("std");
 const os = @import("builtin").os;
 
-const stdout = std.io.getStdOut();
-const stdin = std.io.getStdIn();
+// This doesn't compile on windows OS. getStdOut and getStdIn must be obtained in runtime
+// const stdout = std.io.getStdOut();
+// const stdin = std.io.getStdIn();
+
 const MAX_STR_RESPONSE = 120;
 
 const FileFormat = enum { Json, Csv, Yaml, Unknown };
 
-const Behavior = struct { input: []u8, output: []u8, inputFormat: FileFormat, outputFormat: FileFormat, configuredByCli: bool };
+const Behavior = struct {
+    input: []u8,
+    output: []u8,
+    inputFormat: FileFormat,
+    outputFormat: FileFormat,
+    configuredByCli: bool,
+};
+
+fn abortWith(errorDescription: []u8) noreturn {
+    const stderr = std.io.getStdErr();
+    stderr.writer().print(errorDescription);
+    std.process.exit(1);
+}
 
 fn createFile(allocator: std.mem.Allocator, path: []const u8) !void {
     const file = try std.fs.cwd().createFile(
@@ -27,13 +41,17 @@ fn createFile(allocator: std.mem.Allocator, path: []const u8) !void {
 }
 
 fn askForStrResponse(allocator: std.mem.Allocator, question: []const u8) ![]u8 {
+    const stdout = std.io.getStdOut();
+    const stdin = std.io.getStdIn();
+
     try stdout.writeAll(question);
     try stdout.writeAll("\n-> ");
 
     var result = try stdin.reader().readUntilDelimiterAlloc(allocator, '\n', MAX_STR_RESPONSE);
 
-    // Removes \r if is running on windows
+    // Removes \r if running on windows
     if (os.tag == .windows) {
+        // TODO: This is showing problems when compiling for windows.
         result = std.mem.trimRight(u8, result, '\r');
     }
 
@@ -45,9 +63,30 @@ fn parseArgs() Behavior {
     var argsParsed: u8 = 0;
     _ = args.skip(); // Ignores the first command (the file name for the binary of this software)
 
+    var settingInputFile = false;
+    var settingOutputFile = false;
+
     while (args.next()) |result| {
         argsParsed += 1;
         std.debug.print("Result = {s}\n", .{result});
+
+        if (settingOutputFile) {
+            settingInputFile = false;
+            continue;
+        }
+
+        if (settingOutputFile) {
+            settingOutputFile = false;
+            continue;
+        }
+
+        if (std.mem.eql(u8, result, "--output") or std.mem.eql(u8, result, "-o")) {
+            settingOutputFile = true;
+        }
+    }
+
+    if (settingInputFile or settingOutputFile) {
+        abortWith("Failed to parse args: Found undefined input or output file.\n");
     }
 
     if (argsParsed > 0) {
@@ -58,6 +97,8 @@ fn parseArgs() Behavior {
 }
 
 pub fn main() !void {
+    const stdout = std.io.getStdOut();
+
     var gpa = std.heap.GeneralPurposeAllocator(.{}){};
     const allocator = gpa.allocator();
 
