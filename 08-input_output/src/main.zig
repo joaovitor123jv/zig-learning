@@ -1,40 +1,14 @@
 const std = @import("std");
 const os = @import("builtin").os;
 
+const ArgsParser = @import("args_parser.zig").ArgsParser;
+const Behavior = @import("behavior.zig").Behavior;
+
 // If stdout and stdin are declared as global constants, this will not compile on windows OS.
 // const stdout = std.io.getStdOut();
 // const stdin = std.io.getStdIn();
 
 const MAX_STR_RESPONSE = 120;
-
-const FileFormat = enum { Json, Csv, Yaml, Unknown };
-
-const Behavior = struct {
-    input: []u8,
-    output: []u8,
-    inputFormat: FileFormat,
-    outputFormat: FileFormat,
-    configuredByCli: bool,
-
-    fn print(self: Behavior, stdout: std.fs.File) !void {
-        var writer = stdout.writer();
-
-        try writer.writeAll("Behavior {\n");
-        try writer.print("\tinput: {s}\n", .{self.input});
-        try writer.print("\toutput: {s}\n", .{self.output});
-        try writer.print("\tinputFormat: {}\n", .{self.inputFormat});
-        try writer.print("\toutputFormat: {}\n", .{self.outputFormat});
-        try writer.print("\tconfiguredByCli: {}\n", .{self.configuredByCli});
-
-        try writer.writeAll("}\n");
-    }
-};
-
-fn abortWith(errorDescription: []const u8) noreturn {
-    const stderr = std.io.getStdErr();
-    stderr.writer().writeAll(errorDescription) catch std.process.exit(2);
-    std.process.exit(1);
-}
 
 fn createFile(allocator: std.mem.Allocator, path: []const u8) !void {
     const file = try std.fs.cwd().createFile(
@@ -80,7 +54,7 @@ fn showHelp(stdout: std.fs.File) !void {
     try writer.writeAll("\t- converter --input a_large_file.csv --ouput an_even_larger_file.yml");
     try writer.writeAll("\n\n");
 
-    abortWith("Aborting execution.");
+    std.debug.panic("Aborting execution.", .{});
 }
 
 fn copyStrAsMutable(allocator: std.mem.Allocator, source: []const u8) ![]u8 {
@@ -90,61 +64,28 @@ fn copyStrAsMutable(allocator: std.mem.Allocator, source: []const u8) ![]u8 {
     return copiedString;
 }
 
-fn parseArgs(allocator: std.mem.Allocator, stdout: std.fs.File) !Behavior {
+fn parseArgs(allocator: std.mem.Allocator, stdout: std.fs.File) !*Behavior {
     var args = std.process.args();
     var argsParsed: u8 = 0;
     _ = args.skip(); // Ignores the first command (the file name for the binary of this software)
 
+    var behavior: *Behavior = try Behavior.init(allocator);
+
     var settingInputFile = false;
     var settingOutputFile = false;
-
-    var outputFile: ?[]u8 = null;
-    var inputFile: ?[]u8 = null;
-
-    var inputFileFormat = FileFormat.Unknown;
-    var outputFileFormat = FileFormat.Unknown;
 
     while (args.next()) |result| {
         argsParsed += 1;
         std.debug.print("Result = {s}\n", .{result});
 
         if (settingOutputFile) {
-            // This seems not ok... Something tells me I need to throw these allocs under Behavior struct
-            // Also, would be easier just to defer a deinit function of Behavior instead os freeing memory
-            // allocated randomly by other functions... Still thinking over it
-            outputFile = try allocator.alloc(u8, result.len);
-            const outputF = outputFile.?;
-            std.mem.copyForwards(u8, outputF, result);
-
-            if (std.mem.endsWith(u8, outputF, ".csv")) {
-                outputFileFormat = FileFormat.Csv;
-            } else if (std.mem.endsWith(u8, outputF, ".json")) {
-                outputFileFormat = FileFormat.Json;
-            } else if (std.mem.endsWith(u8, outputF, ".yml") or std.mem.endsWith(u8, outputF, ".yaml")) {
-                outputFileFormat = FileFormat.Yaml;
-            } else {
-                abortWith("Failed to define file type. File should be: JSON, CSV or YAML");
-            }
-
+            try behavior.setOutput(allocator, result);
             settingOutputFile = false;
             continue;
         }
 
         if (settingInputFile) {
-            inputFile = try allocator.alloc(u8, result.len);
-            const inputF = inputFile.?;
-            std.mem.copyForwards(u8, inputF, result);
-
-            if (std.mem.endsWith(u8, inputF, ".csv")) {
-                inputFileFormat = FileFormat.Csv;
-            } else if (std.mem.endsWith(u8, inputF, ".json")) {
-                inputFileFormat = FileFormat.Json;
-            } else if (std.mem.endsWith(u8, inputF, ".yml") or std.mem.endsWith(u8, inputF, ".yaml")) {
-                inputFileFormat = FileFormat.Yaml;
-            } else {
-                abortWith("Failed to define file type. File should be: JSON, CSV or YAML");
-            }
-
+            try behavior.setInput(allocator, result);
             settingInputFile = false;
             continue;
         }
@@ -163,30 +104,14 @@ fn parseArgs(allocator: std.mem.Allocator, stdout: std.fs.File) !Behavior {
     }
 
     if (settingInputFile or settingOutputFile) {
-        abortWith("Failed to parse args: Found undefined input or output file.\n");
+        std.debug.panic("Failed to parse args: Found undefined input or output file.\n", .{});
     }
 
-    if (inputFile == null) {
-        inputFile = try copyStrAsMutable(allocator, "input.csv");
-        inputFileFormat = FileFormat.Csv;
+    if (behavior.outputFormat.known() and behavior.inputFormat.known()) {
+        behavior.configuredByCli = true;
     }
 
-    if (outputFile == null) {
-        outputFile = try copyStrAsMutable(allocator, "output.json");
-        outputFileFormat = FileFormat.Json;
-    }
-
-    if (inputFileFormat == FileFormat.Unknown or outputFileFormat == FileFormat.Unknown) {
-        unreachable;
-    }
-
-    return Behavior{
-        .output = outputFile.?,
-        .input = inputFile.?,
-        .inputFormat = inputFileFormat,
-        .outputFormat = outputFileFormat,
-        .configuredByCli = (argsParsed > 0) and inputFileFormat != FileFormat.Unknown and outputFileFormat != FileFormat.Unknown,
-    };
+    return behavior;
 }
 
 pub fn main() !void {
@@ -196,6 +121,7 @@ pub fn main() !void {
     const allocator = gpa.allocator();
 
     const behavior = try parseArgs(allocator, stdout);
+    defer behavior.deinit();
 
     if (behavior.configuredByCli) {
         std.debug.print("Configured by cli\n", .{});
