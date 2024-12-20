@@ -1,7 +1,7 @@
 const std = @import("std");
 const os = @import("builtin").os;
 
-const ArgsParser = @import("args_parser.zig").ArgsParser;
+const args_parser = @import("args_parser.zig");
 const Behavior = @import("behavior.zig").Behavior;
 
 // If stdout and stdin are declared as global constants, this will not compile on windows OS.
@@ -133,4 +133,8 @@ pub fn main() !void {
 
         try createFile(gpa.allocator(), result);
     }
+}
+
+test {
+    std.testing.refAllDecls(@This());
 }

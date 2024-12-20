@@ -1,5 +1,8 @@
 const std = @import("std");
 
+const expect = std.testing.expect;
+const expectEqual = std.testing.expectEqual;
+
 pub const FileFormat = enum {
     Json,
     Csv,
@@ -31,3 +34,55 @@ pub const FileFormat = enum {
         return self != FileFormat.Unknown;
     }
 };
+
+test "Can print FileFormat" {
+    try expectEqual("JSON", FileFormat.Json.toString());
+    try expectEqual("YAML", FileFormat.Yaml.toString());
+    try expectEqual("CSV", FileFormat.Csv.toString());
+    try expectEqual("UNKNOWN", FileFormat.Unknown.toString());
+}
+
+fn makeCopy(allocator: std.mem.Allocator, src: []const u8) std.mem.Allocator.Error![]u8 {
+    const result = try allocator.alloc(u8, src.len);
+    @memcpy(result, src);
+    return result;
+}
+
+test "Can get FileFormat from string" {
+    const allocator = std.testing.allocator;
+
+    var testStr = try makeCopy(allocator, "path/to/file.json");
+    try expectEqual(FileFormat.Json, FileFormat.fromStr(testStr));
+    allocator.free(testStr);
+
+    testStr = try makeCopy(allocator, "path/to/file.yml");
+    try expectEqual(FileFormat.Yaml, FileFormat.fromStr(testStr));
+    allocator.free(testStr);
+
+    testStr = try makeCopy(allocator, "path/to/file.yaml");
+    try expectEqual(FileFormat.Yaml, FileFormat.fromStr(testStr));
+    allocator.free(testStr);
+
+    testStr = try makeCopy(allocator, "path/to/file.csv");
+    try expectEqual(FileFormat.Csv, FileFormat.fromStr(testStr));
+    allocator.free(testStr);
+
+    testStr = try makeCopy(allocator, "path/to/file.bla");
+    try expectEqual(FileFormat.Unknown, FileFormat.fromStr(testStr));
+    allocator.free(testStr);
+
+    testStr = try makeCopy(allocator, "path/to/file.json0");
+    try expectEqual(FileFormat.Unknown, FileFormat.fromStr(testStr));
+    allocator.free(testStr);
+
+    testStr = try makeCopy(allocator, "path/to/file.bson");
+    try expectEqual(FileFormat.Unknown, FileFormat.fromStr(testStr));
+    allocator.free(testStr);
+}
+
+test "Can check if FileFormat is known" {
+    try expectEqual(false, FileFormat.Unknown.known());
+    try expectEqual(true, FileFormat.Json.known());
+    try expectEqual(true, FileFormat.Yaml.known());
+    try expectEqual(true, FileFormat.Csv.known());
+}
