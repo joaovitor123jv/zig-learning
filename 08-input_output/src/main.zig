@@ -27,19 +27,21 @@ fn createFile(allocator: std.mem.Allocator, path: []const u8) !void {
     std.debug.print("Content written on file: {s}\n", .{bytes_read});
 }
 
-fn askForStrResponse(allocator: std.mem.Allocator, question: []const u8) ![]u8 {
+fn askForStrResponse(allocator: std.mem.Allocator, question: []const u8) ![]const u8 {
     const stdout = std.io.getStdOut();
     const stdin = std.io.getStdIn();
 
     try stdout.writeAll(question);
     try stdout.writeAll("\n-> ");
 
-    var result = try stdin.reader().readUntilDelimiterAlloc(allocator, '\n', MAX_STR_RESPONSE);
+    var result: []const u8 = try stdin
+        .reader()
+        .readUntilDelimiterAlloc(allocator, '\n', MAX_STR_RESPONSE);
 
     // Removes \r if running on windows
     if (os.tag == .windows) {
         // TODO: This is showing problems when compiling for windows.
-        result = std.mem.trimRight(u8, result, '\r');
+        result = std.mem.trimRight(u8, result, "\r");
     }
 
     return result;
@@ -65,7 +67,7 @@ fn copyStrAsMutable(allocator: std.mem.Allocator, source: []const u8) ![]u8 {
 }
 
 fn parseArgs(allocator: std.mem.Allocator, stdout: std.fs.File) !*Behavior {
-    var args = std.process.args();
+    var args = try std.process.argsWithAllocator(allocator);
     var argsParsed: u8 = 0;
     _ = args.skip(); // Ignores the first command (the file name for the binary of this software)
 
