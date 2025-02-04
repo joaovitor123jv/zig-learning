@@ -9,7 +9,7 @@ pub const FileFormat = enum {
     Yaml,
     Unknown,
 
-    pub fn fromStr(str: []u8) FileFormat {
+    pub fn fromStr(str: []const u8) FileFormat {
         if (std.mem.endsWith(u8, str, ".csv")) {
             return FileFormat.Csv;
         } else if (std.mem.endsWith(u8, str, ".json")) {

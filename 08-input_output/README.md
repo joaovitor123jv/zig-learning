@@ -12,7 +12,7 @@ std.debug.print does not print to stdout, but to stderr, and this is intentional
 behavior.
 
 On this step, I will build a command-line tool that converts a CSV file to a
-JSON or YAML file. This is not intended to be a real-life tool that will solve
+JSON file. This is not intended to be a real-life tool that will solve
 humanity's problem of file conversion, but a tool developed to improve my
 learning of the zig programming language.
 
@@ -58,4 +58,49 @@ fn main() !void {
 This is not exclusive for stdout and stdin, as this behaviour can happen in
 different, unknown situations.
 
+During the implementation, the insights process became a bit hard, and I was
+procrastinating to continue my study journey. So I started creating the project
+by organizing small steps that showed progress.
 
+# How implemented it (the baby steps)
+
+1. Build generic helper functions and test it!
+  - [ ] Implement and test a `createFile` function
+  - [ ] Implement and test a `ensureFileExists` function
+  - [ ] Implement and test a `readFile` function
+  - [ ] Implement and test a `FileFormat` enum
+    - [ ] FileFormat has a `fromStr` function
+    - [ ] FileFormat has a `toString` function
+    - [ ] FileFormat has a `known` function
+  - [ ] Implement a `showHelp` function
+2. Modify the code to read the first and second args, and print to stdout
+  - [ ] The software can be executed with: `zig build run -- inputFile outputFile`
+3. Modify the code to copy the contents of inputFile on outputFile
+  - [ ] The software copies the content from `inputFile` to `outputFile`
+4. Implement a basic CSV parser
+  - [ ] Implement a toString function for JSON parser
+  - [ ] Implement a basic row parser:
+    - Accepts only `,` as separator
+    - Reads only ascii files
+    - Only `a-z` `A-Z` `0-9` allowed for column data
+    - Outputs a list of strings (each column)
+  - [ ] Add support for more complex rows
+    - Allows `,` as text of the column
+    - Allows `\n` as text of the column
+    - To allow special characters like `,` or `\n`, data with special chars must
+      be escaped with `""`
+    - To insert `"`, the column name should be escaped as `\"`
+  - [ ] Add support to allow naming columns (header on 1st line, only)
+  - [ ] Add support for reading CSV files to memory
+  - [ ] Add support for saving the CSV in memory to file
+5. Implement a basic JSON parser
+  - [ ] Implement a toString function for JSON parser
+  - [ ] Implement a basic list parser (everything is a string)
+  - [ ] Implement a basic "object" parser (every key is a string, every value
+    is a string)
+  - [ ] Add support for reading JSON files to memory
+  - [ ] Add support for saving the JSON in memory to a file
+6. Implement a "wizard"
+  - [ ] Fixed questions, mandatory responses
+  - [ ] Fixed questions, optional responses (default values)
+  - [ ] Custom questions (i18n), optional responses (default values)
