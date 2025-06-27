@@ -115,6 +115,10 @@ tutorials, and I got issues anyway. This proved me it was the zig version that
 got some problems, so I've uninstalled zig compiler and decided to wait for a
 fix (as I have not enough knowledge to fix it).
 
+After a month or so, I've checked the zig version and it was 0.14.1. I've tried
+executed the project, and it magically worked!
+
+Now I can resume my learning journey on zig!
 
 # How implemented it (the baby steps)
 
