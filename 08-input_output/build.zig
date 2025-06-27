@@ -6,7 +6,7 @@ pub fn build(b: *std.Build) void {
     const optimize = b.standardOptimizeOption(.{});
 
     const exe = b.addExecutable(.{
-        .name = "08-input_output",
+        .name = "v08_input_output",
         .root_source_file = b.path("src/main.zig"),
         .target = target,
         .optimize = optimize,

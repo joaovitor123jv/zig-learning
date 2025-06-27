@@ -62,6 +62,60 @@ During the implementation, the insights process became a bit hard, and I was
 procrastinating to continue my study journey. So I started creating the project
 by organizing small steps that showed progress.
 
+## A versioning issue
+
+I started this project using zig version 0.11.0, but I was away from the 
+project for about 5 months, and new versions of zig compiler were launched.
+This broke the project for a random error: "expected enum literal", pointing 
+to the build.zig.zon file, on the `.name` definition.
+
+After searching the web I found that on zig 0.14.0 it changed the way package 
+names were defined, so I needed to fix every project I built uzing the 
+build.zig files.
+
+Here is the link were I found it: https://ziggit.dev/t/migrating-my-build-zig-zon-to-0-14-0-needs-the-name-to-be-an-enum-literal/8963/2
+
+This is how the error looked:
+```
+➜  08-input_output git:(main) zig build run
+/{redacted}zig-learning/08-input_output/build.zig.zon:9:13: error: expected enum literal
+    .name = "08-input_output",
+```
+
+After fixing the package name error, I stepped in another weird error:
+```
+➜  08-input_output git:(main) zig build run
+/{redacted}/zig-learning/08-input_output/build.zig.zon:1:2: error: missing top-level 'fingerprint' field; suggested value: 0x6121d313e3627142
+.{
+ ^
+```
+
+And yeah, you guessed it, same thing, another thing related to the new build 
+system. I found and read these links and understood what changed:
+- https://ziggit.dev/t/fingerprint-help/8849
+- https://github.com/ziglang/zig/pull/22994
+- https://ziglang.org/download/0.14.0/release-notes.html
+- https://github.com/ziglang/zig/issues/19419
+- https://github.com/Homebrew/homebrew-core/issues/134298
+
+Then... yeah, another build error.
+
+I've updated the build.zig to match the new
+project name on build.zig.zon, added the new 'fingerprint' field with the
+calculated value, but then I've stepped in an unexpected error. No, really, here
+is the full log:
+```
+➜  08-input_output git:(main) ✗ zig build run
+error: Unexpected
+➜  08-input_output git:(main) ✗ 
+```
+
+After a lot of issues, I've created a project from zero following the
+tutorials, and I got issues anyway. This proved me it was the zig version that
+got some problems, so I've uninstalled zig compiler and decided to wait for a
+fix (as I have not enough knowledge to fix it).
+
+
 # How implemented it (the baby steps)
 
 1. Build generic helper functions and test it!
@@ -104,3 +158,4 @@ by organizing small steps that showed progress.
   - [ ] Fixed questions, mandatory responses
   - [ ] Fixed questions, optional responses (default values)
   - [ ] Custom questions (i18n), optional responses (default values)
+
