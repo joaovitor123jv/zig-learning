@@ -17,45 +17,35 @@ pub const DataFile = struct {
         };
     }
 
-    fn existsOnDisk(self: DataFile) bool {
-        const StatFileError = std.fs.Dir.StatFileError;
-
-        switch (std.fs.cwd().statFile(self.path)) {
-            StatFileError.FileNotFound => {
-                std.debug.print("Error: FileNotFound. For '{s}'", .{self.path});
-                return false;
-            },
-            StatFileError.AntivirusInterference => {
-                std.debug.print("Your antivirus is blocking access to the file: '{s}'", self.path);
-                return true;
-            },
-            else => {
-                return true;
-            },
-        }
+    pub fn existsOnDisk(self: DataFile) bool {
+        _ = std.fs.cwd().statFile(self.path) catch return false;
+        return true;
     }
 
     pub fn create(self: DataFile) !void {
         const file = try std.fs.cwd().createFile(
             self.path,
-            .{ .read = true, .truncate = false },
+            .{
+                .read = true,
+                .truncate = false,
+            },
         );
         defer file.close();
-
-        // const message = "Hello File!";
-
-        // try file.writeAll(message);
-
-        // try file.seekTo(0);
-        // const bytes_read = try file.reader().readAllAlloc(self.allocator, message.len);
-
-        // std.debug.print("Content written on file: {s}\n", .{bytes_read});
     }
 
-    pub fn write(self: DataFile, content: []u8) !void {
-        const file = try std.fs.cwd().openFile(self.path, .{});
+    pub fn write(self: DataFile, content: []const u8) !void {
+        if (!self.existsOnDisk()) try self.create();
+        if (!self.existsOnDisk()) unreachable;
+
+        const file = try std.fs.cwd().openFile(self.path, .{
+            .mode = .read_write,
+        });
         defer file.close();
         try file.writeAll(content);
+    }
+
+    pub fn delete(self: DataFile) !void {
+        try std.fs.cwd().deleteFile(self.path);
     }
 
     pub fn readAll(self: DataFile) ![]u8 {
@@ -71,3 +61,56 @@ pub const DataFile = struct {
         });
     }
 };
+
+test "can check if file exists on disk" {
+    const allocator = std.testing.allocator;
+    try std.testing.expect(DataFile
+        .init(allocator, "test_files/unit_test_file.bin")
+        .existsOnDisk());
+    try std.testing.expect(!DataFile
+        .init(allocator, "test_files/unit_test_file-inexistent.bin")
+        .existsOnDisk());
+}
+
+test "can read file contents" {
+    const allocator = std.testing.allocator;
+    const dataFile = DataFile.init(allocator, "test_files/unit_test_file.bin");
+    const fileContents = try dataFile.readAll();
+    defer allocator.free(fileContents);
+    try std.testing.expectEqualStrings("abc", fileContents);
+}
+
+test "can create and write file" {
+    const allocator = std.testing.allocator;
+    const randomInt = std.crypto.random.int(u32);
+    const path = try std.fmt.allocPrint(allocator, "test_files/__testing_base_path-{}.csv", .{randomInt});
+    defer allocator.free(path);
+
+    const dataFile = DataFile.init(allocator, path);
+    try std.testing.expect(!dataFile.existsOnDisk());
+
+    const fileContents: []const u8 = "ab,cd\n1,2\n3,4";
+    try dataFile.write(fileContents);
+    try std.testing.expect(dataFile.existsOnDisk());
+
+    const readContents = try dataFile.readAll();
+    defer allocator.free(readContents);
+    try std.testing.expectEqualStrings(fileContents, readContents);
+}
+
+test "can delete file" {
+    const allocator = std.testing.allocator;
+    const randomInt = std.crypto.random.int(u32);
+    const path = try std.fmt.allocPrint(allocator, "test_files/__testing_base_path-{}.csv", .{randomInt});
+    defer allocator.free(path);
+
+    const dataFile = DataFile.init(allocator, path);
+    try std.testing.expect(!dataFile.existsOnDisk());
+
+    const fileContents: []const u8 = "abc";
+    try dataFile.write(fileContents);
+    try std.testing.expect(dataFile.existsOnDisk());
+
+    try dataFile.delete();
+    try std.testing.expect(!dataFile.existsOnDisk());
+}

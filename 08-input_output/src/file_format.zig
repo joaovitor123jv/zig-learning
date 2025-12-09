@@ -3,6 +3,10 @@ const std = @import("std");
 const expect = std.testing.expect;
 const expectEqual = std.testing.expectEqual;
 
+inline fn endsWith(haystack: []const u8, needle: []const u8) bool {
+    return std.mem.endsWith(u8, haystack, needle);
+}
+
 pub const FileFormat = enum {
     Json,
     Csv,
@@ -10,11 +14,11 @@ pub const FileFormat = enum {
     Unknown,
 
     pub fn fromStr(str: []const u8) FileFormat {
-        if (std.mem.endsWith(u8, str, ".csv")) {
+        if (endsWith(str, ".csv")) {
             return FileFormat.Csv;
-        } else if (std.mem.endsWith(u8, str, ".json")) {
+        } else if (endsWith(str, ".json")) {
             return FileFormat.Json;
-        } else if (std.mem.endsWith(u8, str, ".yml") or std.mem.endsWith(u8, str, ".yaml")) {
+        } else if (endsWith(str, ".yml") or endsWith(str, ".yaml")) {
             return FileFormat.Yaml;
         }
 
@@ -42,42 +46,14 @@ test "Can print FileFormat" {
     try expectEqual("UNKNOWN", FileFormat.Unknown.toString());
 }
 
-fn makeCopy(allocator: std.mem.Allocator, src: []const u8) std.mem.Allocator.Error![]u8 {
-    const result = try allocator.alloc(u8, src.len);
-    @memcpy(result, src);
-    return result;
-}
-
 test "Can get FileFormat from string" {
-    const allocator = std.testing.allocator;
-
-    var testStr = try makeCopy(allocator, "path/to/file.json");
-    try expectEqual(FileFormat.Json, FileFormat.fromStr(testStr));
-    allocator.free(testStr);
-
-    testStr = try makeCopy(allocator, "path/to/file.yml");
-    try expectEqual(FileFormat.Yaml, FileFormat.fromStr(testStr));
-    allocator.free(testStr);
-
-    testStr = try makeCopy(allocator, "path/to/file.yaml");
-    try expectEqual(FileFormat.Yaml, FileFormat.fromStr(testStr));
-    allocator.free(testStr);
-
-    testStr = try makeCopy(allocator, "path/to/file.csv");
-    try expectEqual(FileFormat.Csv, FileFormat.fromStr(testStr));
-    allocator.free(testStr);
-
-    testStr = try makeCopy(allocator, "path/to/file.bla");
-    try expectEqual(FileFormat.Unknown, FileFormat.fromStr(testStr));
-    allocator.free(testStr);
-
-    testStr = try makeCopy(allocator, "path/to/file.json0");
-    try expectEqual(FileFormat.Unknown, FileFormat.fromStr(testStr));
-    allocator.free(testStr);
-
-    testStr = try makeCopy(allocator, "path/to/file.bson");
-    try expectEqual(FileFormat.Unknown, FileFormat.fromStr(testStr));
-    allocator.free(testStr);
+    try expectEqual(FileFormat.Json, FileFormat.fromStr("path/to/file.json"));
+    try expectEqual(FileFormat.Yaml, FileFormat.fromStr("path/to/file.yml"));
+    try expectEqual(FileFormat.Yaml, FileFormat.fromStr("path/to/file.yaml"));
+    try expectEqual(FileFormat.Csv, FileFormat.fromStr("path/to/file.csv"));
+    try expectEqual(FileFormat.Unknown, FileFormat.fromStr("path/to/file.bla"));
+    try expectEqual(FileFormat.Unknown, FileFormat.fromStr("path/to/file.json0"));
+    try expectEqual(FileFormat.Unknown, FileFormat.fromStr("path/to/file.bson"));
 }
 
 test "Can check if FileFormat is known" {

@@ -120,21 +120,47 @@ executed the project, and it magically worked!
 
 Now I can resume my learning journey on zig!
 
+## Another versioning issue
+
+After that time solving issues on the build.zig, I was unable to finish the
+project due to time constraints. I have moved from a job to another, tried to
+understanding new teams and technologies for a long time, then I paused these
+studies. During this time (around 5 months again), a new version of zig was
+launched.
+
+Now, zig is on version 0.15.2, and the build system configs changed (again).
+
+Buuuut, I have already fought that war, so I knew a thing or another of how
+solving it. I'd gone to the zig documentation, read a bit more about the build
+system, and is less than 2 hours, I've solved every issue on the code. Here is
+the needed things I needed to figure it out:
+- The `b.addExecutable` does not accept `.target`, `.root_source_file` and
+`.optimize` anymore. I've created a `root_module` with a new `b.createModule`
+then reused it where it was appliable;
+- Instead of creating a new `writer` with `const w = stdout.writer()` then using
+it with something as `w.writeAll("The string I want to write")`, I started using
+`stdout.writeAll("The string I want to write)` directly;
+- Instead of getting the `stdout` file from `std.io.getStdOut()`, I'm getting it
+from `std.fs.File.stdout()`.
+
+With these changes, the code started working again.
+
+
 # How implemented it (the baby steps)
 
 1. Build generic helper functions and test it!
-  - [ ] Implement and test a `createFile` function
-  - [ ] Implement and test a `ensureFileExists` function
-  - [ ] Implement and test a `readFile` function
-  - [ ] Implement and test a `FileFormat` enum
-    - [ ] FileFormat has a `fromStr` function
-    - [ ] FileFormat has a `toString` function
-    - [ ] FileFormat has a `known` function
-  - [ ] Implement a `showHelp` function
+  - [x] Implement and test a `createFile` function (DataFile.write())
+  - [x] Implement and test a `ensureFileExists` function (DataFile.existsOnDisk)
+  - [x] Implement and test a `readFile` function (DataFile.readAll)
+  - [x] Implement and test a `FileFormat` enum
+    - [x] FileFormat has a `fromStr` function
+    - [x] FileFormat has a `toString` function
+    - [x] FileFormat has a `known` function
+  - [x] Implement a `showHelp` function
 2. Modify the code to read the first and second args, and print to stdout
-  - [ ] The software can be executed with: `zig build run -- inputFile outputFile`
+  - [x] The software can be executed with: `zig build run -- inputFile outputFile`
 3. Modify the code to copy the contents of inputFile on outputFile
-  - [ ] The software copies the content from `inputFile` to `outputFile`
+  - [x] The software copies the content from `inputFile` to `outputFile`
 4. Implement a basic CSV parser
   - [ ] Implement a toString function for JSON parser
   - [ ] Implement a basic row parser:

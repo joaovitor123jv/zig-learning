@@ -2,3 +2,5 @@
 zig-out/
 a.out
 a.exe
+
+08-input_output/test_files/__testing_base_path-*.csv
